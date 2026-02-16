@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Calculator</title>
+    <link rel="stylesheet" href="calculator.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single+Ink:wght@100..900&display=swap" rel="stylesheet">
+<style>
+    #subtle {
+      color: hsl(120, 50%, 50%);
+    }
+   
+    .brand {
+        color: #6c6969;
+        text-align: center;
+    }
+    body{
+        background-color: black;
+    }
+    .brand, #subtle, .value {
+        font-weight: bold;
+        font-size: 1.5em;
+    }
+</style>
+  </head>
+  <body>
+    <div class="theme-toggle">
+      <input type="checkbox" id="themeSwitch" />
+      <label for="themeSwitch">🌙</label>
+    </div>
+    <main class="calculator" role="application" aria-label="Calculator">
+      <div class="calc-header">
+        <div class="brand">Calc</div>
+        <div id="subtle">Simple & responsive</div>
+      </div>
+
+      <section class="display" aria-live="polite" aria-atomic="true">
+        <div class="memory" id="memory">&nbsp;</div>
+        <div class="value" id="display">0</div>
+        <div class="subvalue" id="subvalue">&nbsp;</div>
+      </section>
+
+      <section class="keypad" role="group" aria-label="Calculator keys">
+        <!-- Row 1 -->
+        <button
+          class="btn op secondary ripple"
+          data-action="plusminus"
+          aria-label="plus minus"
+        >
+          ±
+        </button>
+        <button class="btn clear ripple" data-action="clear" aria-label="clear">
+          C
+        </button>
+        <button
+          class="btn op ripple"
+          data-action="percent"
+          aria-label="percent"
+        >
+          %
+        </button>
+        <button
+          class="btn op ripple"
+          data-action="operator"
+          data-value="÷"
+          aria-label="divide"
+        >
+          ÷
+        </button>
+        <button class="btn num ripple" data-value="8" aria-label="8">8</button>
+        <button class="btn num ripple" data-value="7" aria-label="7">7</button>
+        <button class="btn num ripple" data-value="9" aria-label="9">9</button>
+        <button
+          class="btn op ripple"
+          data-action="operator"
+          data-value="×"
+          aria-label="multiply"
+        >
+          ×
+        </button>
+
+        <!-- Row 3 -->
+        <button class="btn num ripple" data-value="4" aria-label="4">4</button>
+        <button class="btn num ripple" data-value="5" aria-label="5">5</button>
+        <button class="btn num ripple" data-value="6" aria-label="6">6</button>
+        <button
+          class="btn op ripple"
+          data-action="operator"
+          data-value="-"
+          aria-label="subtract"
+        >
+          −
+        </button>
+        <button class="btn num ripple" data-value="1" aria-label="1">1</button>
+        <button class="btn num ripple" data-value="2" aria-label="2">2</button>
+        <button class="btn num ripple" data-value="3" aria-label="3">3</button>
+        <button
+          class="btn op ripple"
+          data-action="operator"
+          data-value="+"
+          aria-label="add"
+        >
+          +
+        </button>
+        <button class="btn num wide ripple" data-value="0" aria-label="zero">
+          0
+        </button>
+        <button class="btn num ripple" data-value="." aria-label="decimal">
+          .
+        </button>
+        <button
+          class="btn equal ripple"
+          data-action="equal"
+          aria-label="equals"
+        >
+          =
+        </button>
+      </section>
+      <script>
+          const display = document.getElementById("display");
+          const subdisplay = document.getElementById("subvalue");
+          const buttons = document.querySelectorAll(".btn");
+          const themeSwitch = document.getElementById("themeSwitch")
+          let currentValue = "0";
+          let previousValue = "";
+          let operator = "";
+          let resultDisplayed = false;
+
+          function updateDisplay() {
+           display.textContent = currentValue;
+           subdisplay.textContent = previousValue + "" + operator;
+          }
+
+          themeSwitch.addEventListener("change", () => {
+            document.body.classList.toggle("light", themeSwitch.checked);
+          });
+          buttons.forEach((btn) =>{
+            btn.addEventListener("click", (e) =>{
+              const action = btn.dataset.action;
+              const value = btn.dataset.value;
+              const rect = btn.getBoundingClientRect();
+              btn.style.setProperty("--x", e.clientX - rect.left);
+              btn.style.setProperty("--y", e.clientY - rect.top);
+              if (!action) {
+                if (resultDisplayed) {
+                  currentValue = value === "." ? "0." : value;
+                  resultDisplayed = false;
+                } 
+                else {
+                  if (value === ".") {
+                    if (!currentValue.includes(".")) currentValue += ".";
+                   } 
+                    else {
+                    currentValue = currentValue === "0" ? value : currentValue + value;
+                    }
+                }
+              } 
+              else {
+                switch (action) {
+                  case "clear":
+                    currentValue = "0";
+                    previousValue = "";
+                    operator = "";
+                    break;
+
+                  case "plusminus":
+                    currentValue = (parseFloat(currentValue) * -1).toString();
+                    break;
+
+                  case "percent":
+                    currentValue = (parseFloat(currentValue) / 100).toString();
+                    break;
+
+                  case "operator":
+                    if (previousValue && operator) calculate();
+                    operator = value;
+                    previousValue = currentValue;
+                    currentValue = "0";
+                    break;
+
+                  case "equal":
+                    calculate();
+                    break;
+                }
+              }
+
+              updateDisplay();
+            });
+          });
+
+          function calculate() {
+          if (!operator || !previousValue) return;
+
+          const prev = parseFloat(previousValue);
+          const curr = parseFloat(currentValue);
+          let result = 0;
+
+          switch (operator) {
+            case "+": result = prev + curr; 
+              break;
+            case "-": result = prev - curr; 
+              break;
+            case "×": result = prev * curr; 
+              break;
+            case "÷": result = curr !== 0 ? prev / curr : "Error";
+               break;
+          }
+
+          currentValue = result.toString();
+          previousValue = "";
+          operator = "";
+          resultDisplayed = true;
+        }
+      </script>
+    </main>
+  </body>
+</html>
